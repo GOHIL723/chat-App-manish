@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
 import { useAuth } from "./AuthContext";
+import { BACKEND_URL } from "@/lib/api";
 
 interface SocketContextType {
   socket: Socket | null;
@@ -21,8 +22,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   useEffect(() => {
     if (user && !loading) {
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
-      const newSocket = io(backendUrl, {
+      const newSocket = io(BACKEND_URL, {
         query: {
           userId: user._id,
         },

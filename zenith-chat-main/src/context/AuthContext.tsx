@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
+import axios from '@/lib/api';
 import { toast } from 'sonner';
 
 interface User {
@@ -21,12 +21,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
 }
 
-// Configure axios globally at module load time — must be before any API call
-const backendUrl = typeof window !== 'undefined'
-  ? (import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000')
-  : 'http://localhost:5000';
-axios.defaults.baseURL = `${backendUrl}/api`;
-axios.defaults.withCredentials = true;
+// ✅ axios baseURL & credentials are configured centrally in src/lib/api.ts
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
