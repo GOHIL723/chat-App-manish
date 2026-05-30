@@ -1,0 +1,1 @@
+import{j as e,C as t}from"./index-CNzEU-OH.js";const n=()=>e.jsxs(e.Fragment,{children:[e.jsx(t,{}),e.jsx("div",{className:"hidden md:flex flex-1 items-center justify-center text-muted-foreground",children:"Select a chat to start messaging."})]});export{n as component};
