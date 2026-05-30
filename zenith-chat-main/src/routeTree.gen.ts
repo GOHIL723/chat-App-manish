@@ -19,6 +19,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AppSettingsRouteImport } from './routes/app.settings'
+import { Route as AppProfileRouteImport } from './routes/app.profile'
 import { Route as AppNotificationsRouteImport } from './routes/app.notifications'
 import { Route as AppGroupsRouteImport } from './routes/app.groups'
 import { Route as AppCallsRouteImport } from './routes/app.calls'
@@ -77,6 +78,11 @@ const AppSettingsRoute = AppSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AppRoute,
 } as any)
+const AppProfileRoute = AppProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppNotificationsRoute = AppNotificationsRouteImport.update({
   id: '/notifications',
   path: '/notifications',
@@ -125,6 +131,7 @@ export interface FileRoutesByFullPath {
   '/app/calls': typeof AppCallsRoute
   '/app/groups': typeof AppGroupsRouteWithChildren
   '/app/notifications': typeof AppNotificationsRoute
+  '/app/profile': typeof AppProfileRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/': typeof AppIndexRoute
   '/app/chats/$id': typeof AppChatsIdRoute
@@ -142,6 +149,7 @@ export interface FileRoutesByTo {
   '/verify': typeof VerifyRoute
   '/app/calls': typeof AppCallsRoute
   '/app/notifications': typeof AppNotificationsRoute
+  '/app/profile': typeof AppProfileRoute
   '/app/settings': typeof AppSettingsRoute
   '/app': typeof AppIndexRoute
   '/app/chats/$id': typeof AppChatsIdRoute
@@ -162,6 +170,7 @@ export interface FileRoutesById {
   '/app/calls': typeof AppCallsRoute
   '/app/groups': typeof AppGroupsRouteWithChildren
   '/app/notifications': typeof AppNotificationsRoute
+  '/app/profile': typeof AppProfileRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/': typeof AppIndexRoute
   '/app/chats/$id': typeof AppChatsIdRoute
@@ -183,6 +192,7 @@ export interface FileRouteTypes {
     | '/app/calls'
     | '/app/groups'
     | '/app/notifications'
+    | '/app/profile'
     | '/app/settings'
     | '/app/'
     | '/app/chats/$id'
@@ -200,6 +210,7 @@ export interface FileRouteTypes {
     | '/verify'
     | '/app/calls'
     | '/app/notifications'
+    | '/app/profile'
     | '/app/settings'
     | '/app'
     | '/app/chats/$id'
@@ -219,6 +230,7 @@ export interface FileRouteTypes {
     | '/app/calls'
     | '/app/groups'
     | '/app/notifications'
+    | '/app/profile'
     | '/app/settings'
     | '/app/'
     | '/app/chats/$id'
@@ -310,6 +322,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/profile': {
+      id: '/app/profile'
+      path: '/profile'
+      fullPath: '/app/profile'
+      preLoaderRoute: typeof AppProfileRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/notifications': {
       id: '/app/notifications'
       path: '/notifications'
@@ -380,6 +399,7 @@ interface AppRouteChildren {
   AppCallsRoute: typeof AppCallsRoute
   AppGroupsRoute: typeof AppGroupsRouteWithChildren
   AppNotificationsRoute: typeof AppNotificationsRoute
+  AppProfileRoute: typeof AppProfileRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppIndexRoute: typeof AppIndexRoute
   AppChatsIdRoute: typeof AppChatsIdRoute
@@ -390,6 +410,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppCallsRoute: AppCallsRoute,
   AppGroupsRoute: AppGroupsRouteWithChildren,
   AppNotificationsRoute: AppNotificationsRoute,
+  AppProfileRoute: AppProfileRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppIndexRoute: AppIndexRoute,
   AppChatsIdRoute: AppChatsIdRoute,

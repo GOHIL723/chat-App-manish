@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { ChatListPanel } from "./app";
 import {
   Phone, Video, MoreVertical, Pin, Search, Smile, Paperclip, Image as ImageIcon,
-  Mic, Send, Reply, Forward, Check, CheckCheck, Play, Pause, Sparkles, X, StopCircle, AlertCircle, Trash2, ChevronLeft,
+  Mic, Send, Reply, Forward, Check, CheckCheck, Play, Pause, Sparkles, X, StopCircle, AlertCircle, Trash2, ChevronLeft, Eye, EyeOff,
 } from "lucide-react";
 import { useState, useEffect, useRef, useCallback } from "react";
 import axios from "@/lib/api";
@@ -34,6 +34,7 @@ function ChatRoom() {
   const [showEmoji, setShowEmoji] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [sendAsViewOnce, setSendAsViewOnce] = useState(false);
   const [lightboxMedia, setLightboxMedia] = useState<{ url: string, type: 'image' | 'video', name?: string } | null>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -150,11 +151,16 @@ function ChatRoom() {
       );
     };
 
+    const handleMessageDeleted = ({ messageId }: { messageId: string }) => {
+      setMessages(prev => prev.filter(m => String(m._id) !== String(messageId)));
+    };
+
     socket.on("newMessage", handleNewMessage);
     socket.on("messagesSeen", handleMessagesSeen);
     socket.on("typing", handleTyping);
     socket.on("stopTyping", handleStopTyping);
     socket.on("viewOnceOpened", handleViewOnceOpened);
+    socket.on("messageDeleted", handleMessageDeleted);
 
     return () => {
       socket.off("newMessage", handleNewMessage);
@@ -162,6 +168,7 @@ function ChatRoom() {
       socket.off("typing", handleTyping);
       socket.off("stopTyping", handleStopTyping);
       socket.off("viewOnceOpened", handleViewOnceOpened);
+      socket.off("messageDeleted", handleMessageDeleted);
     };
   }, [socket, id, currentUser]);
 
@@ -207,6 +214,29 @@ function ChatRoom() {
     }
   };
 
+  const handleDeleteMessage = async (msgId: string, forEveryone: boolean) => {
+    try {
+      if (forEveryone) {
+        await axios.delete(`/messages/${msgId}`);
+      } else {
+        await axios.post(`/messages/delete-for-me/${msgId}`);
+        setMessages(prev => prev.filter(m => String(m._id) !== String(msgId)));
+      }
+    } catch (err) {
+      console.error("Failed to delete message", err);
+    }
+  };
+
+  const handleClearChat = async () => {
+    if (!window.confirm("Are you sure you want to clear this chat? This cannot be undone.")) return;
+    try {
+      await axios.delete(`/messages/clear/${id}`);
+      setMessages([]);
+    } catch (err) {
+      console.error("Failed to clear chat", err);
+    }
+  };
+
   // Upload file (image or file attachment) to backend → Cloudinary
   const uploadAndSend = useCallback(async (file: File, messageType: string, duration?: number) => {
     setIsUploading(true);
@@ -226,7 +256,7 @@ function ChatRoom() {
         mediaMimeType: mimeType || file.type || "",
         mediaSize: size || file.size || 0,
         replyTo: replyingTo?._id || null,
-        isViewOnce: resolvedType === "image",
+        isViewOnce: resolvedType === "image" && sendAsViewOnce,
       };
       // Pass recording duration for voice messages
       if (resolvedType === "voice" && duration) {
@@ -235,6 +265,7 @@ function ChatRoom() {
       const res = await axios.post(`/messages/send/${id}`, payload);
       setMessages(prev => [...prev, res.data]);
       setReplyingTo(null);
+      setSendAsViewOnce(false); // Reset view once toggle after sending
     } catch (error) {
       console.error("Upload failed", error);
     } finally {
@@ -271,7 +302,7 @@ function ChatRoom() {
   return (
     <>
       {/* Hidden file inputs */}
-      <input ref={imageInputRef} type="file" accept="image/*,video/*" className="hidden" onChange={handleImageSelect} />
+      <input ref={imageInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
       <input ref={fileInputRef} type="file" accept=".pdf,.doc,.docx,.txt,.zip,.xls,.xlsx,.ppt,.pptx" className="hidden" onChange={handleFileSelect} />
 
       {isDragging && (
@@ -392,7 +423,15 @@ function ChatRoom() {
             </div>
           )}
           {messages.map((m, i) => (
-            <Bubble key={m._id} m={m} prev={messages[i - 1]} currentUser={currentUser} chatUser={chatUser} onReply={setReplyingTo} />
+            <Bubble 
+              key={m._id} 
+              m={m} 
+              prev={messages[i - 1]} 
+              currentUser={currentUser} 
+              chatUser={chatUser} 
+              onReply={setReplyingTo} 
+              onDelete={handleDeleteMessage}
+            />
           ))}
 
           {/* Typing indicator */}
@@ -516,6 +555,13 @@ function ChatRoom() {
           {!isRecording && !isPreview && !isRecordUploading && (
             <div className="glass-strong rounded-2xl p-2 flex items-end gap-2 relative z-10">
               <IconBtn icon={Smile} onClick={() => setShowEmoji(!showEmoji)} />
+              <button 
+                onClick={() => setSendAsViewOnce(!sendAsViewOnce)} 
+                className={`h-10 w-10 shrink-0 rounded-xl flex items-center justify-center transition ${sendAsViewOnce ? 'bg-[var(--neon)]/20 text-[var(--neon)]' : 'text-muted-foreground hover:bg-accent hover:text-foreground'}`}
+                title={sendAsViewOnce ? "Sending as View Once" : "Send as View Once"}
+              >
+                {sendAsViewOnce ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
               <IconBtn icon={ImageIcon} onClick={() => imageInputRef.current?.click()} />
               <IconBtn icon={Paperclip} onClick={() => fileInputRef.current?.click()} />
               {isUploading ? (
@@ -577,10 +623,21 @@ function ChatRoom() {
               ))}
             </div>
           </div>
-          <div className="p-5">
-            <SectionTitle>Shared media</SectionTitle>
-            <div className="text-xs text-muted-foreground text-center py-2 mt-2">
-              View Once photos cannot be saved to media.
+          <div className="p-5 flex-1 flex flex-col">
+            <div>
+              <SectionTitle>Shared media</SectionTitle>
+              <div className="text-xs text-muted-foreground text-center py-2 mt-2">
+                View Once photos cannot be saved to media.
+              </div>
+            </div>
+            
+            <div className="mt-auto pt-6 border-t border-border/50">
+              <button 
+                onClick={handleClearChat}
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500/20 transition text-sm font-medium"
+              >
+                <Trash2 className="h-4 w-4" /> Clear Chat History
+              </button>
             </div>
           </div>
         </aside>
@@ -615,7 +672,7 @@ function timeAgo(dateString: string) {
   return `${diffInDays}d ago`;
 }
 
-function Bubble({ m, prev, currentUser, chatUser, onReply }: { m: any; prev?: any; currentUser: any; chatUser: any; onReply: (m: any) => void }) {
+function Bubble({ m, prev, currentUser, chatUser, onReply, onDelete }: { m: any; prev?: any; currentUser: any; chatUser: any; onReply: (m: any) => void; onDelete: (msgId: string, forEveryone: boolean) => void; }) {
   const me = m.senderId === currentUser?._id;
   const sameAuthor = prev?.senderId === m.senderId;
   const time = new Date(m.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -625,12 +682,22 @@ function Bubble({ m, prev, currentUser, chatUser, onReply }: { m: any; prev?: an
       {!me && (sameAuthor ? <div className="w-8" /> : <img src={chatUser.avatar} className="h-8 w-8 rounded-full" alt="" />)}
       <div className={`max-w-md ${me ? "items-end" : "items-start"} flex flex-col`}>
         {m.replyTo && (
-          <div className={`text-xs glass rounded-lg px-3 py-1.5 border-l-2 border-[var(--neon)] mb-1 ${me ? "self-end" : ""}`}>
+          <div 
+            onClick={() => {
+              const el = document.getElementById(`msg-${m.replyTo._id}`);
+              if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                el.classList.add('bg-white/20');
+                setTimeout(() => el.classList.remove('bg-white/20'), 1000);
+              }
+            }}
+            className={`cursor-pointer transition-colors text-xs glass rounded-lg px-3 py-1.5 border-l-2 border-[var(--neon)] mb-1 ${me ? "self-end" : ""}`}
+          >
             <div className="text-[var(--neon)] font-medium">Replying to {m.replyTo.senderId === currentUser?._id ? "yourself" : chatUser.name}</div>
             <div className="text-muted-foreground truncate opacity-80">{m.replyTo.message || "Attachment"}</div>
           </div>
         )}
-        <div className={`relative px-4 py-2.5 text-sm shadow-sm animate-fade-in ${me
+        <div id={`msg-${m._id}`} className={`relative px-4 py-2.5 text-sm shadow-sm transition-colors duration-500 animate-fade-in ${me
           ? "bg-gradient-to-br from-[var(--neon)] via-[var(--primary)] to-[var(--neon-2)] text-white rounded-2xl rounded-br-sm"
           : "glass rounded-2xl rounded-bl-sm"
           }`}>
@@ -667,10 +734,20 @@ function Bubble({ m, prev, currentUser, chatUser, onReply }: { m: any; prev?: an
           </div>
 
           {/* hover actions */}
-          <div className={`absolute ${me ? "right-full mr-2" : "left-full ml-2"} top-1/2 -translate-y-1/2 hidden group-hover:flex glass-strong rounded-full p-1 gap-0.5`}>
-            <button className="h-7 w-7 rounded-full hover:bg-accent flex items-center justify-center text-foreground"><Smile className="h-3.5 w-3.5" /></button>
-            <button onClick={() => onReply(m)} className="h-7 w-7 rounded-full hover:bg-accent flex items-center justify-center text-foreground"><Reply className="h-3.5 w-3.5" /></button>
-            <button className="h-7 w-7 rounded-full hover:bg-accent flex items-center justify-center text-foreground"><Forward className="h-3.5 w-3.5" /></button>
+          <div className={`absolute ${me ? "right-full mr-2" : "left-full ml-2"} top-1/2 -translate-y-1/2 hidden group-hover:flex glass-strong rounded-full p-1 gap-0.5 z-10`}>
+            <button className="h-7 w-7 rounded-full hover:bg-accent flex items-center justify-center text-foreground" title="React"><Smile className="h-3.5 w-3.5" /></button>
+            <button onClick={() => onReply(m)} className="h-7 w-7 rounded-full hover:bg-accent flex items-center justify-center text-foreground" title="Reply"><Reply className="h-3.5 w-3.5" /></button>
+            <button 
+              onClick={() => {
+                const forEveryone = me ? window.confirm("Unsend message for everyone?") : false;
+                if (!me && !window.confirm("Delete message for yourself?")) return;
+                onDelete(m._id, forEveryone);
+              }} 
+              className="h-7 w-7 rounded-full hover:bg-red-500/20 hover:text-red-500 flex items-center justify-center text-foreground transition" 
+              title={me ? "Unsend" : "Delete for me"}
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </button>
           </div>
         </div>
         {m.reactions && (

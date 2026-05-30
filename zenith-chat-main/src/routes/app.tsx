@@ -2,7 +2,7 @@ import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-r
 import { Logo } from "@/components/logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import {
-  Home, MessageCircle, Users, Phone, Bell, Settings, LogOut, Search, X, Loader2, Shield, LayoutDashboard
+  Home, MessageCircle, Users, Phone, Bell, Settings, LogOut, Search, X, Loader2, Shield, LayoutDashboard, User
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -191,6 +191,20 @@ function ProfileDropdown({ user, logout, nav }: { user: any; logout: () => void;
 
           {/* Menu items */}
           <div className="p-2 space-y-0.5">
+            {/* My Profile */}
+            <Link
+              to="/app/profile"
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm hover:bg-accent/50 transition group"
+            >
+              <div className="h-8 w-8 rounded-lg bg-accent flex items-center justify-center group-hover:scale-105 transition">
+                <User className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <div>
+                <div className="text-sm font-medium">My Profile</div>
+                <div className="text-[10px] text-muted-foreground">View your information</div>
+              </div>
+            </Link>
             {/* Admin Dashboard — only for admin/moderator */}
             {isAdmin && (
               <Link

@@ -61,7 +61,11 @@ const messageSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Message',
         default: null
-    }
+    },
+    deletedBy: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    }]
 }, { timestamps: true });
 
 const Message = mongoose.model("Message", messageSchema);

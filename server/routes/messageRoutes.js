@@ -8,7 +8,10 @@ const {
     searchMessages,
     searchAllMessages,
     getUnreadCounts,
-    markViewOnceAsSeen
+    markViewOnceAsSeen,
+    deleteMessageForEveryone,
+    deleteMessageForMe,
+    clearChat
 } = require('../controllers/messageController');
 const { protectRoute } = require('../middleware/authMiddleware');
 
@@ -34,7 +37,6 @@ const upload = multer({
         const allowedPrefixes = [
             'image/',
             'audio/',
-            'video/',
             'application/pdf',
             'application/msword',
             'application/vnd.openxmlformats-officedocument',
@@ -74,5 +76,8 @@ router.post("/send/:id", protectRoute, sendMessage);
 router.post("/seen/:id", protectRoute, markMessagesAsSeen);
 router.post("/view-once/:messageId", protectRoute, markViewOnceAsSeen);
 router.post("/upload", protectRoute, upload.single('file'), handleMulterError, uploadMedia);
+router.delete("/clear/:chatUserId", protectRoute, clearChat);
+router.delete("/:msgId", protectRoute, deleteMessageForEveryone);
+router.post("/delete-for-me/:msgId", protectRoute, deleteMessageForMe);
 
 module.exports = router;

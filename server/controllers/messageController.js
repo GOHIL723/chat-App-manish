@@ -228,19 +228,17 @@ const getMessages = async (req, res) => {
         const limit = parseInt(req.query.limit) || 50;
         const skip = (page - 1) * limit;
 
-        const totalCount = await Message.countDocuments({
+        const query = {
             $or: [
                 { senderId: senderId, receiverId: userToChatId },
                 { senderId: userToChatId, receiverId: senderId }
-            ]
-        });
+            ],
+            deletedBy: { $ne: senderId }
+        };
 
-        const messages = await Message.find({
-            $or: [
-                { senderId: senderId, receiverId: userToChatId },
-                { senderId: userToChatId, receiverId: senderId }
-            ]
-        })
+        const totalCount = await Message.countDocuments(query);
+
+        const messages = await Message.find(query)
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit)
@@ -354,6 +352,7 @@ const searchMessages = async (req, res) => {
                 { senderId: senderId, receiverId: userToChatId },
                 { senderId: userToChatId, receiverId: senderId }
             ],
+            deletedBy: { $ne: senderId },
             messageType: "text",
             message: { $regex: searchRegex }
         })
@@ -389,6 +388,7 @@ const searchAllMessages = async (req, res) => {
                 { senderId: userId },
                 { receiverId: userId }
             ],
+            deletedBy: { $ne: userId },
             messageType: "text",
             message: { $regex: searchRegex }
         })
@@ -440,6 +440,107 @@ const getUnreadCounts = async (req, res) => {
     }
 };
 
+/**
+ * DELETE /api/messages/:msgId
+ * Unsend a message (delete for everyone). Only the sender can do this.
+ */
+const deleteMessageForEveryone = async (req, res) => {
+    try {
+        const { msgId } = req.params;
+        const userId = req.user._id;
+
+        const message = await Message.findById(msgId);
+        if (!message) {
+            return res.status(404).json({ error: "Message not found" });
+        }
+
+        if (message.senderId.toString() !== userId.toString()) {
+            return res.status(403).json({ error: "You can only unsend your own messages" });
+        }
+
+        await Message.findByIdAndDelete(msgId);
+
+        // Notify both sender (in case of multiple sessions) and receiver
+        const senderSocketId = getReceiverSocketId(message.senderId);
+        const receiverSocketId = getReceiverSocketId(message.receiverId);
+
+        if (senderSocketId) {
+            io.to(senderSocketId).emit("messageDeleted", { messageId: msgId, forEveryone: true });
+        }
+        if (receiverSocketId) {
+            io.to(receiverSocketId).emit("messageDeleted", { messageId: msgId, forEveryone: true });
+        }
+
+        res.status(200).json({ success: true, message: "Message unsent successfully" });
+    } catch (error) {
+        console.error("Error in deleteMessageForEveryone controller: ", error.message);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
+
+/**
+ * POST /api/messages/delete-for-me/:msgId
+ * Delete a message only for the logged-in user.
+ */
+const deleteMessageForMe = async (req, res) => {
+    try {
+        const { msgId } = req.params;
+        const userId = req.user._id;
+
+        const message = await Message.findById(msgId);
+        if (!message) {
+            return res.status(404).json({ error: "Message not found" });
+        }
+
+        // Add user to deletedBy array if not already there
+        if (!message.deletedBy.includes(userId)) {
+            message.deletedBy.push(userId);
+            await message.save();
+        }
+
+        res.status(200).json({ success: true, message: "Message deleted for you" });
+    } catch (error) {
+        console.error("Error in deleteMessageForMe controller: ", error.message);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
+
+/**
+ * DELETE /api/messages/clear/:chatUserId
+ * Clear entire chat with a specific user.
+ */
+const clearChat = async (req, res) => {
+    try {
+        const { chatUserId } = req.params;
+        const userId = req.user._id;
+
+        // Find all messages between the two users
+        const messages = await Message.find({
+            $or: [
+                { senderId: userId, receiverId: chatUserId },
+                { senderId: chatUserId, receiverId: userId }
+            ]
+        });
+
+        // Add userId to deletedBy for all these messages
+        for (const msg of messages) {
+            if (!msg.deletedBy.includes(userId)) {
+                msg.deletedBy.push(userId);
+                await msg.save();
+            }
+        }
+
+        // Notify the other user so their chat clears in real time too if needed (optional)
+        // Usually, clear chat only deletes it for the user who clicked "Clear Chat".
+        // But if they want it for both, they'd use a different API. Here we only deleted for 'userId'.
+
+        res.status(200).json({ success: true, message: "Chat cleared successfully" });
+    } catch (error) {
+        console.error("Error in clearChat controller: ", error.message);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
+
 module.exports = {
     sendMessage,
     getMessages,
@@ -448,5 +549,8 @@ module.exports = {
     searchMessages,
     searchAllMessages,
     getUnreadCounts,
-    markViewOnceAsSeen
+    markViewOnceAsSeen,
+    deleteMessageForEveryone,
+    deleteMessageForMe,
+    clearChat
 };
