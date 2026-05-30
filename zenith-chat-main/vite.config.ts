@@ -7,16 +7,26 @@
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 import { nitro } from "nitro/vite";
 
-// Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
-// @cloudflare/vite-plugin builds from this — wrangler.jsonc main alone is insufficient.
+// Detect deployment platform
+const isCloudflare = !!process.env.CF_PAGES;
+const isVercel = process.env.VERCEL === "1";
+const isNetlify = !!process.env.NETLIFY;
+// Render, local, or any other node-based environment
+const isNodeServer = !isCloudflare && !isVercel && !isNetlify;
+
+// Determine Nitro preset
+const nitroPreset = process.env.NITRO_PRESET
+  || (isNetlify ? "netlify" : isVercel ? "vercel" : isNodeServer ? "node-server" : undefined);
+
 export default defineConfig({
-  cloudflare: process.env.VERCEL === "1" ? false : undefined,
+  // Disable Cloudflare plugin unless actually deploying to Cloudflare Pages
+  cloudflare: isCloudflare ? undefined : false,
   tanstackStart: {
     server: { entry: "server" },
   },
   plugins: [
     nitro({
-      preset: process.env.NITRO_PRESET || (process.env.NETLIFY ? "netlify" : (process.env.VERCEL === "1" ? "vercel" : undefined)),
+      preset: nitroPreset,
     }),
   ],
   vite: {
