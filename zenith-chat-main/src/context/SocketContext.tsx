@@ -3,6 +3,11 @@ import { io, Socket } from "socket.io-client";
 import { useAuth } from "./AuthContext";
 import { BACKEND_URL } from "@/lib/api";
 
+// Socket ke liye direct URL chahiye (proxy work nahi karta WebSocket ke liye reliably)
+const SOCKET_URL = import.meta.env.DEV
+  ? 'http://localhost:5000'
+  : (import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000');
+
 interface SocketContextType {
   socket: Socket | null;
   onlineUsers: string[];
@@ -22,7 +27,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   useEffect(() => {
     if (user && !loading) {
-      const newSocket = io(BACKEND_URL, {
+      const newSocket = io(SOCKET_URL, {
         query: {
           userId: user._id,
         },

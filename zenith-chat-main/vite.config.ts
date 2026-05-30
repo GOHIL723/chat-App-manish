@@ -19,4 +19,21 @@ export default defineConfig({
       preset: process.env.NITRO_PRESET || (process.env.NETLIFY ? "netlify" : (process.env.VERCEL === "1" ? "vercel" : undefined)),
     }),
   ],
+  vite: {
+    server: {
+      proxy: {
+        // Dev mein /api/* requests port 5000 (backend) pe forward karo — CORS bypass
+        '/api': {
+          target: 'http://localhost:5000',
+          changeOrigin: true,
+          secure: false,
+        },
+        '/socket.io': {
+          target: 'http://localhost:5000',
+          changeOrigin: true,
+          ws: true,
+        },
+      },
+    },
+  },
 });

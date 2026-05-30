@@ -18,13 +18,27 @@ const PORT = process.env.PORT || 5000;
 
 app.use(express.json());
 app.use(cookieParser());
+// Allowed origins list
+const allowedOrigins = [
+    process.env.FRONTEND_URL,
+    "http://localhost:8080",
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "http://localhost:4173",
+].filter(Boolean); // Remove undefined values
+
+console.log('🌐 CORS allowed origins:', allowedOrigins);
+
 app.use(cors({
-    origin: [
-        process.env.FRONTEND_URL || "http://localhost:8080",
-        "http://localhost:8080",
-        "http://localhost:5173",
-        "http://localhost:3000"
-    ],
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps, Postman, server-to-server)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+        console.warn(`⚠️  CORS blocked origin: ${origin}`);
+        callback(new Error('Not allowed by CORS'));
+    },
     credentials: true
 }));
 
@@ -51,9 +65,28 @@ app.use("/api/users", userRoutes);
 app.use("/api/groups", groupRoutes);
 app.use("/api/admin", adminRoutes);
 
-// Basic route for testing
+// Health check - Render ke liye zaroori
 app.get('/', (req, res) => {
-    res.send('API is running...');
+    res.json({
+        status: 'ok',
+        message: 'API is running...',
+        env: process.env.NODE_ENV,
+        mongo: require('mongoose').connection.readyState === 1 ? 'connected' : 'disconnected',
+        time: new Date().toISOString()
+    });
+});
+
+// Diagnostic endpoint - env check
+app.get('/api/health', (req, res) => {
+    res.json({
+        status: 'ok',
+        mongo_uri_set: !!process.env.MONGO_URI,
+        jwt_secret_set: !!process.env.JWT_SECRET && process.env.JWT_SECRET !== 'your_super_secret_jwt_key_32_chars_long',
+        frontend_url: process.env.FRONTEND_URL || 'NOT SET',
+        node_env: process.env.NODE_ENV,
+        mongo_state: require('mongoose').connection.readyState
+        // 0=disconnected, 1=connected, 2=connecting, 3=disconnecting
+    });
 });
 
 // Start server
