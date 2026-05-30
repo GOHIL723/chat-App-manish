@@ -33,11 +33,19 @@ app.use(cors({
     origin: function (origin, callback) {
         // Allow requests with no origin (like mobile apps, Postman, server-to-server)
         if (!origin) return callback(null, true);
+        
+        // Check exact matches
         if (allowedOrigins.includes(origin)) {
             return callback(null, true);
         }
+        
+        // Allow any vercel.app subdomain dynamically to prevent deployment blockers
+        if (origin.endsWith('.vercel.app') || origin.endsWith('.netlify.app')) {
+            return callback(null, true);
+        }
+
         console.warn(`⚠️  CORS blocked origin: ${origin}`);
-        callback(new Error('Not allowed by CORS'));
+        callback(null, false); // Returning false instead of an Error prevents the 500 Internal Server Error
     },
     credentials: true
 }));

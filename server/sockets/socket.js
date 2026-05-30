@@ -7,7 +7,14 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
     cors: {
-        origin: [process.env.FRONTEND_URL || "http://localhost:8080", "http://localhost:5173", "http://localhost:3000"],
+        origin: function (origin, callback) {
+            // Allow Vercel/Netlify dynamic subdomains, localhosts, or explicit frontend URL
+            if (!origin || origin.endsWith('.vercel.app') || origin.endsWith('.netlify.app') || origin.includes('localhost') || origin === process.env.FRONTEND_URL) {
+                callback(null, true);
+            } else {
+                callback(null, false);
+            }
+        },
         methods: ["GET", "POST"],
         credentials: true
     }
