@@ -42,9 +42,26 @@ function ChatRoom() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesTopRef = useRef<HTMLDivElement>(null);
+  const headerMenuRef = useRef<HTMLDivElement>(null);
 
   const { socket, onlineUsers } = useSocket();
   const { user: currentUser } = useAuth();
+
+  useEffect(() => {
+    if (!showHeaderMenu) return;
+    const handler = (e: MouseEvent) => {
+      if (headerMenuRef.current && !headerMenuRef.current.contains(e.target as Node)) {
+        setShowHeaderMenu(false);
+      }
+    };
+    const timeout = setTimeout(() => {
+      document.addEventListener("click", handler);
+    }, 50);
+    return () => {
+      clearTimeout(timeout);
+      document.removeEventListener("click", handler);
+    };
+  }, [showHeaderMenu]);
 
   useEffect(() => {
     const handleOpenLightbox = (e: any) => setLightboxMedia(e.detail);
@@ -425,26 +442,23 @@ function ChatRoom() {
             <IconBtn icon={Phone} />
             <IconBtn icon={Video} />
             <IconBtn icon={Pin} />
-            <div className="relative">
+            <div ref={headerMenuRef} className="relative">
               <IconBtn icon={MoreVertical} onClick={() => setShowHeaderMenu(s => !s)} />
               {showHeaderMenu && (
-                <>
-                  <div className="fixed inset-0 z-40" onClick={() => setShowHeaderMenu(false)} />
-                  <div className="absolute top-full right-0 mt-2 w-48 glass-strong rounded-xl shadow-2xl border border-border/50 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
-                    <div className="p-1">
-                      <button onClick={() => { setShowInfo(s => !s); setShowHeaderMenu(false); }} className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-accent transition flex items-center gap-2">
-                        <Pin className="h-4 w-4 text-muted-foreground" /> {showInfo ? "Hide Info" : "Contact Info"}
-                      </button>
-                      <button onClick={handleExportChat} className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-accent transition flex items-center gap-2">
-                        <Download className="h-4 w-4 text-muted-foreground" /> Export Chat
-                      </button>
-                      <div className="my-1 border-t border-border/50" />
-                      <button onClick={handleClearChat} className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-red-500/10 text-red-500 transition flex items-center gap-2">
-                        <Trash2 className="h-4 w-4" /> Clear Chat
-                      </button>
-                    </div>
+                <div className="absolute top-full right-0 mt-2 w-48 glass-strong rounded-xl shadow-2xl border border-border/50 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
+                  <div className="p-1">
+                    <button onClick={() => { setShowInfo(s => !s); setShowHeaderMenu(false); }} className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-accent transition flex items-center gap-2">
+                      <Pin className="h-4 w-4 text-muted-foreground" /> {showInfo ? "Hide Info" : "Contact Info"}
+                    </button>
+                    <button onClick={handleExportChat} className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-accent transition flex items-center gap-2">
+                      <Download className="h-4 w-4 text-muted-foreground" /> Export Chat
+                    </button>
+                    <div className="my-1 border-t border-border/50" />
+                    <button onClick={handleClearChat} className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-red-500/10 text-red-500 transition flex items-center gap-2">
+                      <Trash2 className="h-4 w-4" /> Clear Chat
+                    </button>
                   </div>
-                </>
+                </div>
               )}
             </div>
           </div>
@@ -720,6 +734,7 @@ function Bubble({ m, prev, currentUser, chatUser, onReply, onDelete }: { m: any;
   
   const [showMobileActions, setShowMobileActions] = useState(false);
   const pressTimer = useRef<NodeJS.Timeout | null>(null);
+  const bubbleRef = useRef<HTMLDivElement>(null);
 
   const handleTouchStart = () => {
     pressTimer.current = setTimeout(() => {
@@ -732,13 +747,32 @@ function Bubble({ m, prev, currentUser, chatUser, onReply, onDelete }: { m: any;
     if (pressTimer.current) clearTimeout(pressTimer.current);
   };
 
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setShowMobileActions(true);
+    if (window.navigator.vibrate) window.navigator.vibrate(50);
+  };
+
+  useEffect(() => {
+    if (!showMobileActions) return;
+    const handler = (e: MouseEvent) => {
+      if (bubbleRef.current && !bubbleRef.current.contains(e.target as Node)) {
+        setShowMobileActions(false);
+      }
+    };
+    const timeout = setTimeout(() => {
+      document.addEventListener("click", handler);
+    }, 50);
+    return () => {
+      clearTimeout(timeout);
+      document.removeEventListener("click", handler);
+    };
+  }, [showMobileActions]);
+
   return (
     <div className={`flex gap-2.5 group ${me ? "justify-end" : ""} ${sameAuthor ? "mt-0.5" : "mt-3"}`}>
       {!me && (sameAuthor ? <div className="w-8" /> : <img src={chatUser.avatar} className="h-8 w-8 rounded-full" alt="" />)}
-      <div className={`max-w-md ${me ? "items-end" : "items-start"} flex flex-col relative`}>
-        {showMobileActions && (
-          <div className="fixed inset-0 z-10" onTouchStart={() => setShowMobileActions(false)} onClick={() => setShowMobileActions(false)} />
-        )}
+      <div ref={bubbleRef} className={`max-w-md ${me ? "items-end" : "items-start"} flex flex-col relative`}>
         {m.replyTo && (
           <div 
             onClick={() => {
@@ -760,6 +794,7 @@ function Bubble({ m, prev, currentUser, chatUser, onReply, onDelete }: { m: any;
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEndOrMove}
           onTouchMove={handleTouchEndOrMove}
+          onContextMenu={handleContextMenu}
           className={`relative px-4 py-2.5 text-sm shadow-sm transition-colors duration-500 animate-fade-in ${me
             ? "bg-gradient-to-br from-[var(--neon)] via-[var(--primary)] to-[var(--neon-2)] text-white rounded-2xl rounded-br-sm"
             : "glass rounded-2xl rounded-bl-sm"
