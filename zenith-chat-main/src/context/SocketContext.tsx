@@ -3,10 +3,10 @@ import { io, Socket } from "socket.io-client";
 import { useAuth } from "./AuthContext";
 import { BACKEND_URL } from "@/lib/api";
 
-// Socket ke liye direct URL chahiye (proxy work nahi karta WebSocket ke liye reliably)
+// Use the VITE_BACKEND_URL from env, or default to the known Render production URL if in prod, else localhost
 const SOCKET_URL = import.meta.env.DEV
   ? 'http://localhost:5000'
-  : (import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000');
+  : (import.meta.env.VITE_BACKEND_URL || 'https://chat-app-manish.onrender.com');
 
 interface SocketContextType {
   socket: Socket | null;

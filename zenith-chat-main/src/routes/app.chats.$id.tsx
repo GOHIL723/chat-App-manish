@@ -94,9 +94,9 @@ function ChatRoom() {
     if (!socket) return;
 
     const handleNewMessage = (newMessage: any) => {
-      // Use String() to avoid ObjectId vs string type mismatch issues
-      const msgSenderId = String(newMessage.senderId);
-      const msgReceiverId = String(newMessage.receiverId);
+      // Use String() safely and handle if it's an object
+      const msgSenderId = typeof newMessage.senderId === 'object' && newMessage.senderId !== null ? String(newMessage.senderId._id) : String(newMessage.senderId);
+      const msgReceiverId = typeof newMessage.receiverId === 'object' && newMessage.receiverId !== null ? String(newMessage.receiverId._id) : String(newMessage.receiverId);
       const chatId = String(id);
       const myId = String(currentUser?._id);
 

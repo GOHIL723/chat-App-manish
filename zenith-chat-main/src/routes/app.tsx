@@ -314,7 +314,7 @@ export function ChatListPanel({ active }: { active?: string }) {
     if (!socket) return;
 
     const handleNewMessage = (newMessage: any) => {
-      const senderId = String(newMessage.senderId);
+      const senderId = typeof newMessage.senderId === 'object' && newMessage.senderId !== null ? String(newMessage.senderId._id) : String(newMessage.senderId);
 
       setRecentChats(prev => {
         const existingIdx = prev.findIndex(u => String(u.id) === senderId);
