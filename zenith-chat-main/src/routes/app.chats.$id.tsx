@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { ChatListPanel } from "./app";
 import {
   Phone, Video, MoreVertical, Pin, Search, Smile, Paperclip, Image as ImageIcon,
-  Mic, Send, Reply, Forward, Check, CheckCheck, Play, Pause, Sparkles, X, StopCircle, AlertCircle, Trash2, ChevronLeft, Eye, EyeOff,
+  Mic, Send, Reply, Forward, Check, CheckCheck, Play, Pause, Sparkles, X, StopCircle, AlertCircle, Trash2, ChevronLeft, Eye, EyeOff, Download,
 } from "lucide-react";
 import { useState, useEffect, useRef, useCallback } from "react";
 import axios from "@/lib/api";
@@ -35,6 +35,7 @@ function ChatRoom() {
   const [isUploading, setIsUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [sendAsViewOnce, setSendAsViewOnce] = useState(false);
+  const [showHeaderMenu, setShowHeaderMenu] = useState(false);
   const [lightboxMedia, setLightboxMedia] = useState<{ url: string, type: 'image' | 'video', name?: string } | null>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -232,9 +233,28 @@ function ChatRoom() {
     try {
       await axios.delete(`/messages/clear/${id}`);
       setMessages([]);
+      setShowHeaderMenu(false);
     } catch (err) {
       console.error("Failed to clear chat", err);
     }
+  };
+
+  const handleExportChat = () => {
+    let content = `Chat History with ${chatUser.name}\nGenerated on ${new Date().toLocaleString()}\n\n`;
+    messages.forEach(m => {
+      const time = new Date(m.createdAt).toLocaleString();
+      const sender = m.senderId === currentUser?._id ? "Me" : chatUser.name;
+      const text = m.messageType === "text" ? m.message : `[${m.messageType.toUpperCase()} ATTACHMENT]`;
+      content += `[${time}] ${sender}: ${text}\n`;
+    });
+    const blob = new Blob([content], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `chat_export_${chatUser.username}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+    setShowHeaderMenu(false);
   };
 
   // Upload file (image or file attachment) to backend → Cloudinary
@@ -405,7 +425,28 @@ function ChatRoom() {
             <IconBtn icon={Phone} />
             <IconBtn icon={Video} />
             <IconBtn icon={Pin} />
-            <IconBtn icon={MoreVertical} onClick={() => setShowInfo(s => !s)} />
+            <div className="relative">
+              <IconBtn icon={MoreVertical} onClick={() => setShowHeaderMenu(s => !s)} />
+              {showHeaderMenu && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setShowHeaderMenu(false)} />
+                  <div className="absolute top-full right-0 mt-2 w-48 glass-strong rounded-xl shadow-2xl border border-border/50 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
+                    <div className="p-1">
+                      <button onClick={() => { setShowInfo(s => !s); setShowHeaderMenu(false); }} className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-accent transition flex items-center gap-2">
+                        <Pin className="h-4 w-4 text-muted-foreground" /> {showInfo ? "Hide Info" : "Contact Info"}
+                      </button>
+                      <button onClick={handleExportChat} className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-accent transition flex items-center gap-2">
+                        <Download className="h-4 w-4 text-muted-foreground" /> Export Chat
+                      </button>
+                      <div className="my-1 border-t border-border/50" />
+                      <button onClick={handleClearChat} className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-red-500/10 text-red-500 transition flex items-center gap-2">
+                        <Trash2 className="h-4 w-4" /> Clear Chat
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </header>
 
@@ -676,11 +717,28 @@ function Bubble({ m, prev, currentUser, chatUser, onReply, onDelete }: { m: any;
   const me = m.senderId === currentUser?._id;
   const sameAuthor = prev?.senderId === m.senderId;
   const time = new Date(m.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  
+  const [showMobileActions, setShowMobileActions] = useState(false);
+  const pressTimer = useRef<NodeJS.Timeout | null>(null);
+
+  const handleTouchStart = () => {
+    pressTimer.current = setTimeout(() => {
+      setShowMobileActions(true);
+      if (window.navigator.vibrate) window.navigator.vibrate(50);
+    }, 500);
+  };
+
+  const handleTouchEndOrMove = () => {
+    if (pressTimer.current) clearTimeout(pressTimer.current);
+  };
 
   return (
     <div className={`flex gap-2.5 group ${me ? "justify-end" : ""} ${sameAuthor ? "mt-0.5" : "mt-3"}`}>
       {!me && (sameAuthor ? <div className="w-8" /> : <img src={chatUser.avatar} className="h-8 w-8 rounded-full" alt="" />)}
-      <div className={`max-w-md ${me ? "items-end" : "items-start"} flex flex-col`}>
+      <div className={`max-w-md ${me ? "items-end" : "items-start"} flex flex-col relative`}>
+        {showMobileActions && (
+          <div className="fixed inset-0 z-10" onTouchStart={() => setShowMobileActions(false)} onClick={() => setShowMobileActions(false)} />
+        )}
         {m.replyTo && (
           <div 
             onClick={() => {
@@ -697,9 +755,14 @@ function Bubble({ m, prev, currentUser, chatUser, onReply, onDelete }: { m: any;
             <div className="text-muted-foreground truncate opacity-80">{m.replyTo.message || "Attachment"}</div>
           </div>
         )}
-        <div id={`msg-${m._id}`} className={`relative px-4 py-2.5 text-sm shadow-sm transition-colors duration-500 animate-fade-in ${me
-          ? "bg-gradient-to-br from-[var(--neon)] via-[var(--primary)] to-[var(--neon-2)] text-white rounded-2xl rounded-br-sm"
-          : "glass rounded-2xl rounded-bl-sm"
+        <div 
+          id={`msg-${m._id}`} 
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEndOrMove}
+          onTouchMove={handleTouchEndOrMove}
+          className={`relative px-4 py-2.5 text-sm shadow-sm transition-colors duration-500 animate-fade-in ${me
+            ? "bg-gradient-to-br from-[var(--neon)] via-[var(--primary)] to-[var(--neon-2)] text-white rounded-2xl rounded-br-sm"
+            : "glass rounded-2xl rounded-bl-sm"
           }`}>
           <MediaMessage
             messageId={m._id}
@@ -733,12 +796,13 @@ function Bubble({ m, prev, currentUser, chatUser, onReply, onDelete }: { m: any;
             )}
           </div>
 
-          {/* hover actions */}
-          <div className={`absolute ${me ? "right-full mr-2" : "left-full ml-2"} top-1/2 -translate-y-1/2 hidden group-hover:flex glass-strong rounded-full p-1 gap-0.5 z-10`}>
-            <button className="h-7 w-7 rounded-full hover:bg-accent flex items-center justify-center text-foreground" title="React"><Smile className="h-3.5 w-3.5" /></button>
-            <button onClick={() => onReply(m)} className="h-7 w-7 rounded-full hover:bg-accent flex items-center justify-center text-foreground" title="Reply"><Reply className="h-3.5 w-3.5" /></button>
+          {/* actions menu */}
+          <div className={`absolute ${me ? "right-full mr-2" : "left-full ml-2"} top-1/2 -translate-y-1/2 ${showMobileActions ? "flex" : "hidden group-hover:flex"} glass-strong rounded-full p-1 gap-0.5 z-20`}>
+            <button onClick={() => { setShowMobileActions(false); /* add reaction logic later */ }} className="h-7 w-7 rounded-full hover:bg-accent flex items-center justify-center text-foreground" title="React"><Smile className="h-3.5 w-3.5" /></button>
+            <button onClick={() => { setShowMobileActions(false); onReply(m); }} className="h-7 w-7 rounded-full hover:bg-accent flex items-center justify-center text-foreground" title="Reply"><Reply className="h-3.5 w-3.5" /></button>
             <button 
               onClick={() => {
+                setShowMobileActions(false);
                 const forEveryone = me ? window.confirm("Unsend message for everyone?") : false;
                 if (!me && !window.confirm("Delete message for yourself?")) return;
                 onDelete(m._id, forEveryone);
