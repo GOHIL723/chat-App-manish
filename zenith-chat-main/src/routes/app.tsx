@@ -242,7 +242,7 @@ function ProfileDropdown({ user, logout, nav }: { user: any; logout: () => void;
   );
 }
 
-import axios from "axios";
+import axios from "@/lib/api";
 import { useSocket } from "../context/SocketContext";
 
 export function ChatListPanel({ active }: { active?: string }) {

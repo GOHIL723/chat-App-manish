@@ -12,4 +12,13 @@ export { BACKEND_URL };
 axios.defaults.baseURL = `${BACKEND_URL}/api`;
 axios.defaults.withCredentials = true;
 
+// Intercept requests to attach the JWT token from localStorage
+axios.interceptors.request.use((config) => {
+  const token = localStorage.getItem('chat_token');
+  if (token && config.headers) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 export default axios;

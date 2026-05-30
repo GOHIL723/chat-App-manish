@@ -5,7 +5,7 @@ import {
   Mic, Send, Reply, Forward, Check, CheckCheck, Play, Pause, Sparkles, X, StopCircle, AlertCircle, Trash2, ChevronLeft,
 } from "lucide-react";
 import { useState, useEffect, useRef, useCallback } from "react";
-import axios from "axios";
+import axios from "@/lib/api";
 import { useSocket } from "../context/SocketContext";
 import { useAuth } from "../context/AuthContext";
 import EmojiPicker from 'emoji-picker-react';

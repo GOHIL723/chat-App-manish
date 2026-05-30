@@ -47,6 +47,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const res = await axios.post('/auth/login', { username, password });
       setUser(res.data);
+      if (res.data.token) localStorage.setItem('chat_token', res.data.token);
       toast.success('Logged in successfully');
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Login failed');
@@ -58,6 +59,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const res = await axios.post('/auth/signup', userData);
       setUser(res.data);
+      if (res.data.token) localStorage.setItem('chat_token', res.data.token);
       toast.success('Account created successfully');
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Signup failed');
@@ -69,6 +71,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       await axios.post('/auth/logout');
       setUser(null);
+      localStorage.removeItem('chat_token');
       toast.success('Logged out successfully');
     } catch (error: any) {
       toast.error('Logout failed');
