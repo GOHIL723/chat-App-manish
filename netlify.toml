@@ -1,4 +1,14 @@
 [build]
   base = "zenith-chat-main"
-  command = "npm run build"
-  publish = "dist"
+  command = "npm install && npm run build"
+  publish = ".output/public"
+
+[build.environment]
+  NODE_VERSION = "20"
+  NETLIFY = "true"
+  VITE_BACKEND_URL = "https://chat-app-manish.onrender.com"
+
+[[redirects]]
+  from = "/*"
+  to = "/.netlify/functions/server"
+  status = 200
