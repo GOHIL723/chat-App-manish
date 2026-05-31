@@ -360,12 +360,28 @@ export function ChatListPanel({ active }: { active?: string }) {
         return senderEntry ? [senderEntry, ...rest] : updated;
       });
 
-      // Browser notification if tab not focused
+      // Notifications handling
       const notificationsEnabled = localStorage.getItem("chat_notifications_enabled") !== "false";
       
-      if (notificationsEnabled && (document.hidden || String(active) !== senderId)) {
-        const sender = recentChats.find(u => String(u.id) === senderId);
-        if (sender && "Notification" in window && Notification.permission === "granted") {
+      if (notificationsEnabled && String(active) !== senderId) {
+        const sender = recentChats.find(u => String(u.id) === senderId) || { name: 'Someone', avatar: '' };
+        
+        // 1. In-app toast notification (Visible on all devices including Mobile while app is open)
+        toast.custom((t) => (
+          <div className="flex items-center gap-3 bg-background border border-border p-3 rounded-xl shadow-lg cursor-pointer" onClick={() => {
+            toast.dismiss(t);
+            navigate({ to: `/app/chats/${senderId}` });
+          }}>
+            <img src={sender.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${senderId}`} className="h-10 w-10 rounded-full" alt="" />
+            <div className="flex-1">
+              <div className="text-sm font-semibold">{sender.name}</div>
+              <div className="text-xs text-muted-foreground truncate max-w-[200px]">{newMessage.message || "Sent an attachment"}</div>
+            </div>
+          </div>
+        ), { duration: 4000, position: 'top-center' });
+
+        // 2. Browser Desktop notification (If tab is hidden)
+        if (document.hidden && "Notification" in window && Notification.permission === "granted") {
           new Notification(`New message from ${sender.name}`, {
             body: newMessage.message || "Sent an attachment",
             icon: sender.avatar,
