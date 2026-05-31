@@ -13,6 +13,7 @@ const messageRoutes = require('./routes/messageRoutes.js');
 const userRoutes = require('./routes/userRoutes.js');
 const groupRoutes = require('./routes/groupRoutes.js');
 const adminRoutes = require('./routes/adminRoutes.js');
+const adminAuthRoutes = require('./routes/adminAuthRoutes.js');
 
 const PORT = process.env.PORT || 5000;
 
@@ -72,6 +73,7 @@ app.use("/api/messages", messageRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/groups", groupRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/admin-auth", adminAuthRoutes);
 
 // Health check - Render ke liye zaroori
 app.get('/', (req, res) => {

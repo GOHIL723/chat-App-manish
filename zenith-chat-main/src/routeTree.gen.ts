@@ -23,6 +23,7 @@ import { Route as AppProfileRouteImport } from './routes/app.profile'
 import { Route as AppNotificationsRouteImport } from './routes/app.notifications'
 import { Route as AppGroupsRouteImport } from './routes/app.groups'
 import { Route as AppCallsRouteImport } from './routes/app.calls'
+import { Route as AdminDashboardRouteImport } from './routes/admin.dashboard'
 import { Route as AppGroupsIndexRouteImport } from './routes/app.groups.index'
 import { Route as AppChatsIndexRouteImport } from './routes/app.chats.index'
 import { Route as AppGroupsIdRouteImport } from './routes/app.groups.$id'
@@ -98,6 +99,11 @@ const AppCallsRoute = AppCallsRouteImport.update({
   path: '/calls',
   getParentRoute: () => AppRoute,
 } as any)
+const AdminDashboardRoute = AdminDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AppGroupsIndexRoute = AppGroupsIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -121,13 +127,14 @@ const AppChatsIdRoute = AppChatsIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/app': typeof AppRouteWithChildren
   '/forgot': typeof ForgotRoute
   '/login': typeof LoginRoute
   '/preview': typeof PreviewRoute
   '/signup': typeof SignupRoute
   '/verify': typeof VerifyRoute
+  '/admin/dashboard': typeof AdminDashboardRoute
   '/app/calls': typeof AppCallsRoute
   '/app/groups': typeof AppGroupsRouteWithChildren
   '/app/notifications': typeof AppNotificationsRoute
@@ -141,12 +148,13 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/forgot': typeof ForgotRoute
   '/login': typeof LoginRoute
   '/preview': typeof PreviewRoute
   '/signup': typeof SignupRoute
   '/verify': typeof VerifyRoute
+  '/admin/dashboard': typeof AdminDashboardRoute
   '/app/calls': typeof AppCallsRoute
   '/app/notifications': typeof AppNotificationsRoute
   '/app/profile': typeof AppProfileRoute
@@ -160,13 +168,14 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/app': typeof AppRouteWithChildren
   '/forgot': typeof ForgotRoute
   '/login': typeof LoginRoute
   '/preview': typeof PreviewRoute
   '/signup': typeof SignupRoute
   '/verify': typeof VerifyRoute
+  '/admin/dashboard': typeof AdminDashboardRoute
   '/app/calls': typeof AppCallsRoute
   '/app/groups': typeof AppGroupsRouteWithChildren
   '/app/notifications': typeof AppNotificationsRoute
@@ -189,6 +198,7 @@ export interface FileRouteTypes {
     | '/preview'
     | '/signup'
     | '/verify'
+    | '/admin/dashboard'
     | '/app/calls'
     | '/app/groups'
     | '/app/notifications'
@@ -208,6 +218,7 @@ export interface FileRouteTypes {
     | '/preview'
     | '/signup'
     | '/verify'
+    | '/admin/dashboard'
     | '/app/calls'
     | '/app/notifications'
     | '/app/profile'
@@ -227,6 +238,7 @@ export interface FileRouteTypes {
     | '/preview'
     | '/signup'
     | '/verify'
+    | '/admin/dashboard'
     | '/app/calls'
     | '/app/groups'
     | '/app/notifications'
@@ -241,7 +253,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AdminRoute: typeof AdminRoute
+  AdminRoute: typeof AdminRouteWithChildren
   AppRoute: typeof AppRouteWithChildren
   ForgotRoute: typeof ForgotRoute
   LoginRoute: typeof LoginRoute
@@ -350,6 +362,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCallsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/admin/dashboard': {
+      id: '/admin/dashboard'
+      path: '/dashboard'
+      fullPath: '/admin/dashboard'
+      preLoaderRoute: typeof AdminDashboardRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/app/groups/': {
       id: '/app/groups/'
       path: '/'
@@ -380,6 +399,16 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface AdminRouteChildren {
+  AdminDashboardRoute: typeof AdminDashboardRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminDashboardRoute: AdminDashboardRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface AppGroupsRouteChildren {
   AppGroupsIdRoute: typeof AppGroupsIdRoute
@@ -421,7 +450,7 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AdminRoute: AdminRoute,
+  AdminRoute: AdminRouteWithChildren,
   AppRoute: AppRouteWithChildren,
   ForgotRoute: ForgotRoute,
   LoginRoute: LoginRoute,
