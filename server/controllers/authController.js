@@ -67,6 +67,10 @@ const login = async (req, res) => {
             return res.status(400).json({ error: "Invalid username or password" });
         }
 
+        if (user.role === 'admin') {
+            return res.status(403).json({ error: "Admin accounts must log in via the /admin panel." });
+        }
+
         if (user.status === 'Banned') {
             return res.status(403).json({ error: "Your account has been banned." });
         }
