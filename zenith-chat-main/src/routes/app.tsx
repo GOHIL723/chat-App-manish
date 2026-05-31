@@ -361,7 +361,9 @@ export function ChatListPanel({ active }: { active?: string }) {
       });
 
       // Browser notification if tab not focused
-      if (document.hidden || String(active) !== senderId) {
+      const notificationsEnabled = localStorage.getItem("chat_notifications_enabled") !== "false";
+      
+      if (notificationsEnabled && (document.hidden || String(active) !== senderId)) {
         const sender = recentChats.find(u => String(u.id) === senderId);
         if (sender && "Notification" in window && Notification.permission === "granted") {
           new Notification(`New message from ${sender.name}`, {

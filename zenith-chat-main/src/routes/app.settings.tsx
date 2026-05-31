@@ -63,7 +63,7 @@ function SettingsPage() {
                 </div>
               </div>
             )}
-            {active === "notifications" && <ToggleList items={["Direct messages", "Group mentions", "Calls", "Reactions", "Marketing emails"]} />}
+            {active === "notifications" && <NotificationsSettings />}
             {active === "privacy" && <ToggleList items={["Read receipts", "Typing indicators", "Last seen", "Two-factor auth", "End-to-end encryption"]} />}
             {active === "appearance" && <Appearance />}
             {active === "language" && <div className="space-y-4"><Field label="Language" defaultValue="English (US)" /><Field label="Time zone" defaultValue="GMT-08:00 Pacific" /></div>}
@@ -104,12 +104,54 @@ function ToggleList({ items }: { items: string[] }) {
   );
 }
 
-function Toggle({ defaultOn }: { defaultOn?: boolean }) {
+function Toggle({ defaultOn, onChange }: { defaultOn?: boolean; onChange?: (val: boolean) => void }) {
   const [on, setOn] = useState(!!defaultOn);
   return (
-    <button onClick={() => setOn(o => !o)} className={`relative h-6 w-11 rounded-full transition ${on ? "bg-gradient-to-r from-[var(--neon)] to-[var(--primary)]" : "bg-muted"}`}>
+    <button 
+      onClick={() => {
+        const newVal = !on;
+        setOn(newVal);
+        if (onChange) onChange(newVal);
+      }} 
+      className={`relative h-6 w-11 rounded-full transition ${on ? "bg-gradient-to-r from-[var(--neon)] to-[var(--primary)]" : "bg-muted"}`}
+    >
       <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition ${on ? "left-[22px]" : "left-0.5"}`} />
     </button>
+  );
+}
+
+function NotificationsSettings() {
+  // Default to true unless explicitly set to false
+  const [notificationsEnabled, setNotificationsEnabled] = useState(() => {
+    return localStorage.getItem("chat_notifications_enabled") !== "false";
+  });
+
+  const handleToggle = (enabled: boolean) => {
+    setNotificationsEnabled(enabled);
+    localStorage.setItem("chat_notifications_enabled", enabled ? "true" : "false");
+    
+    // Request permission if enabling
+    if (enabled && "Notification" in window && Notification.permission !== "granted") {
+      Notification.requestPermission();
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <h2 className="text-xl font-semibold">Notifications</h2>
+      
+      <div className="space-y-3">
+        <div className="flex items-center justify-between p-4 glass rounded-xl border border-[var(--neon)]/30">
+          <div>
+            <div className="font-medium text-sm text-[var(--neon)]">Desktop Notifications</div>
+            <div className="text-xs text-muted-foreground">Get browser alerts for new messages</div>
+          </div>
+          <Toggle defaultOn={notificationsEnabled} onChange={handleToggle} />
+        </div>
+      </div>
+      
+      <ToggleList items={["Group mentions", "Calls", "Reactions", "Marketing emails"]} />
+    </div>
   );
 }
 
