@@ -7,7 +7,7 @@ export function Logo({ withText = true }: { withText?: boolean }) {
         <img
           src="/logo.jpg"
           alt="MajaniChat Logo"
-          className="h-full w-full object-contain"
+          className="h-full w-full object-cover"
         />
       </div>
       {withText && (
