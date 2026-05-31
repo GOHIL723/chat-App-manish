@@ -79,6 +79,35 @@ io.on('connection', (socket) => {
         socket.to(`group_${groupId}`).emit('groupStopTyping', { groupId, senderId: userId });
     });
 
+    // ── WebRTC Voice Call Signaling ──────────────────────────
+    socket.on('callUser', ({ userToCall, signalData, from, name, avatar }) => {
+        const receiverSocketId = getReceiverSocketId(userToCall);
+        if (receiverSocketId) {
+            io.to(receiverSocketId).emit('incomingCall', { signal: signalData, from, name, avatar });
+        }
+    });
+
+    socket.on('answerCall', ({ to, signal }) => {
+        const callerSocketId = getReceiverSocketId(to);
+        if (callerSocketId) {
+            io.to(callerSocketId).emit('callAccepted', signal);
+        }
+    });
+
+    socket.on('iceCandidate', ({ to, candidate }) => {
+        const targetSocketId = getReceiverSocketId(to);
+        if (targetSocketId) {
+            io.to(targetSocketId).emit('iceCandidate', candidate);
+        }
+    });
+
+    socket.on('endCall', ({ to }) => {
+        const targetSocketId = getReceiverSocketId(to);
+        if (targetSocketId) {
+            io.to(targetSocketId).emit('endCall');
+        }
+    });
+
     socket.on('disconnect', () => {
         console.log('User disconnected:', socket.id);
         delete userSocketMap[userId];

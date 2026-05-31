@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "../context/AuthContext";
 import { SocketProvider } from "../context/SocketContext";
+import { CallProvider } from "../context/CallContext";
 import { AdminAuthProvider } from "../context/AdminAuthContext";
 import {
   Outlet,
@@ -125,7 +126,9 @@ function RootComponent() {
       <AdminAuthProvider>
         <AuthProvider>
           <SocketProvider>
-            <Outlet />
+            <CallProvider>
+              <Outlet />
+            </CallProvider>
           </SocketProvider>
         </AuthProvider>
       </AdminAuthProvider>

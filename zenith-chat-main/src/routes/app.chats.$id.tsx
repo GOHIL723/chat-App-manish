@@ -13,6 +13,7 @@ import { MediaMessage } from '../components/MediaMessage';
 import { MediaLightbox } from '../components/MediaLightbox';
 import { DragDropOverlay } from '../components/DragDropOverlay';
 import { useVoiceRecorder } from "../hooks/useVoiceRecorder";
+import { useCall } from "../context/CallContext";
 
 export const Route = createFileRoute("/app/chats/$id")({
   component: ChatRoom,
@@ -46,6 +47,7 @@ function ChatRoom() {
 
   const { socket, onlineUsers } = useSocket();
   const { user: currentUser } = useAuth();
+  const { callUser } = useCall();
 
   useEffect(() => {
     if (!showHeaderMenu) return;
@@ -384,7 +386,7 @@ function ChatRoom() {
               </span>
             </div>
             <div className="grid grid-cols-3 gap-3 mt-6">
-              <button className="flex flex-col items-center gap-1.5 p-3 glass rounded-xl hover:glow-neon transition">
+              <button onClick={() => chatUser && callUser(chatUser._id, chatUser.name, chatUser.avatar)} className="flex flex-col items-center gap-1.5 p-3 glass rounded-xl hover:glow-neon transition">
                 <Phone className="h-5 w-5" /><span className="text-[10px]">Call</span>
               </button>
               <button className="flex flex-col items-center gap-1.5 p-3 glass rounded-xl hover:glow-neon transition">
@@ -439,7 +441,7 @@ function ChatRoom() {
           </div>
           <div className="flex items-center gap-1">
             <IconBtn icon={Search} />
-            <IconBtn icon={Phone} />
+            <IconBtn icon={Phone} onClick={() => chatUser && callUser(chatUser._id, chatUser.name, chatUser.avatar)} />
             <IconBtn icon={Video} />
             <IconBtn icon={Pin} />
             <div ref={headerMenuRef} className="relative">
