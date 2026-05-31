@@ -10,9 +10,9 @@ import { useAuth } from "../context/AuthContext";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "NebulaChat — Real-time chat, reimagined" },
+      { title: "MajaniChat — Real-time chat, reimagined" },
       { name: "description", content: "A premium real-time messaging platform with voice, video, and group collaboration." },
-      { property: "og:title", content: "NebulaChat — Real-time chat, reimagined" },
+      { property: "og:title", content: "MajaniChat — Real-time chat, reimagined" },
       { property: "og:description", content: "A premium real-time messaging platform with voice, video, and group collaboration." },
     ],
   }),
@@ -78,7 +78,7 @@ function Landing() {
           conversation is here.
         </h1>
         <p className="mt-6 text-lg text-muted-foreground max-w-2xl mx-auto animate-slide-up">
-          NebulaChat blends crystal-clear voice & video, secure group spaces, and a
+          MajaniChat blends crystal-clear voice & video, secure group spaces, and a
           beautifully crafted interface that feels alive.
         </p>
         <div className="mt-10 flex items-center justify-center gap-3 animate-slide-up">
@@ -247,7 +247,7 @@ function Landing() {
           <div className="absolute inset-0 gradient-mesh opacity-50" />
           <div className="relative">
             <h2 className="text-4xl md:text-5xl font-bold">Ready to chat in style?</h2>
-            <p className="mt-4 text-muted-foreground max-w-xl mx-auto">Join hundreds of thousands of teams already using NebulaChat.</p>
+            <p className="mt-4 text-muted-foreground max-w-xl mx-auto">Join hundreds of thousands of teams already using MajaniChat.</p>
             <Link
               to="/signup"
               className="mt-8 inline-flex h-12 items-center gap-2 px-7 rounded-full text-sm font-medium bg-gradient-to-r from-[var(--neon)] via-[var(--primary)] to-[var(--neon-2)] text-white glow-primary"
@@ -267,7 +267,7 @@ function Landing() {
             <span className="inline-flex items-center gap-1.5"><Lock className="h-3.5 w-3.5" /> SOC 2 compliant</span>
             <span className="inline-flex items-center gap-1.5"><Globe className="h-3.5 w-3.5" /> 30+ regions</span>
           </div>
-          <div>© 2026 NebulaChat</div>
+          <div>© 2026 MajaniChat</div>
         </div>
       </footer>
     </div>

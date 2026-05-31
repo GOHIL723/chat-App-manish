@@ -8,7 +8,7 @@ import { toast } from "sonner";
 
 
 export const Route = createFileRoute("/app")({
-  head: () => ({ meta: [{ title: "NebulaChat" }, { name: "description", content: "Your conversations" }] }),
+  head: () => ({ meta: [{ title: "MajaniChat" }, { name: "description", content: "Your conversations" }] }),
   component: AppLayout,
 });
 

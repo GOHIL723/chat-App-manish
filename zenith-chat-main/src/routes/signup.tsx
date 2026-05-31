@@ -4,7 +4,7 @@ import { useState, FormEvent, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 
 export const Route = createFileRoute("/signup")({
-  head: () => ({ meta: [{ title: "Create account — NebulaChat" }, { name: "description", content: "Join NebulaChat" }] }),
+  head: () => ({ meta: [{ title: "Create account — MajaniChat" }, { name: "description", content: "Join MajaniChat" }] }),
   component: Signup,
 });
 

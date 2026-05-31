@@ -21,7 +21,7 @@ function SettingsPage() {
     <main className="flex-1 overflow-y-auto scrollbar-thin">
       <div className="max-w-5xl mx-auto p-6 md:p-10">
         <h1 className="text-3xl font-bold">Settings</h1>
-        <p className="text-muted-foreground mt-1">Personalize your NebulaChat experience.</p>
+        <p className="text-muted-foreground mt-1">Personalize your MajaniChat experience.</p>
 
         <div className="mt-8 grid md:grid-cols-[260px_1fr] gap-6">
           <nav className="glass rounded-2xl p-2 h-fit">
@@ -53,7 +53,7 @@ function SettingsPage() {
                 <div className="grid sm:grid-cols-2 gap-4">
                   <Field label="Display name" defaultValue="Alex Rivera" />
                   <Field label="Username" defaultValue="@alex" />
-                  <Field label="Email" defaultValue="alex@nebula.chat" />
+                  <Field label="Email" defaultValue="alex@majani.chat" />
                   <Field label="Phone" defaultValue="+1 (555) 010-2024" />
                 </div>
                 <Field label="Bio" defaultValue="Building the future of conversations · he/him" multiline />

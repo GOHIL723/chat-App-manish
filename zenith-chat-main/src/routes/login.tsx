@@ -13,7 +13,7 @@ export const Route = createFileRoute("/login")({
       redirect: typeof search.redirect === "string" ? search.redirect : undefined,
     };
   },
-  head: () => ({ meta: [{ title: "Sign in — NebulaChat" }, { name: "description", content: "Sign in to NebulaChat" }] }),
+  head: () => ({ meta: [{ title: "Sign in — MajaniChat" }, { name: "description", content: "Sign in to MajaniChat" }] }),
   component: Login,
 });
 

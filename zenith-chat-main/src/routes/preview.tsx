@@ -9,8 +9,8 @@ import { Logo } from "@/components/logo";
 export const Route = createFileRoute("/preview")({
   head: () => ({
     meta: [
-      { title: "Responsive Device Preview — NebulaChat" },
-      { name: "description", content: "Interactive device sandbox to preview NebulaChat in Mobile, Tablet, Laptop, and Desktop screens." },
+      { title: "Responsive Device Preview — MajaniChat" },
+      { name: "description", content: "Interactive device sandbox to preview MajaniChat in Mobile, Tablet, Laptop, and Desktop screens." },
     ],
   }),
   component: DevicePreviewer,

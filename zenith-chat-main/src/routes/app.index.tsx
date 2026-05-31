@@ -17,7 +17,7 @@ function AppHome() {
             <MessageSquare className="h-9 w-9 text-white" />
           </div>
         </div>
-        <h2 className="mt-8 text-3xl font-bold">Welcome to <span className="text-gradient">NebulaChat</span></h2>
+        <h2 className="mt-8 text-3xl font-bold">Welcome to <span className="text-gradient">MajaniChat</span></h2>
         <p className="mt-2 text-muted-foreground max-w-sm">Pick a conversation from the left, or start something new.</p>
         <div className="mt-6 flex gap-3">
           <Link to="/app/chats/$id" params={{ id: "1" }} className="inline-flex h-11 items-center gap-2 px-5 rounded-full bg-gradient-to-r from-[var(--neon)] to-[var(--primary)] text-white text-sm glow-primary">

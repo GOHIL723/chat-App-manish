@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { useSocket } from "../context/SocketContext";
 
 export const Route = createFileRoute("/admin")({
-  head: () => ({ meta: [{ title: "Admin · NebulaChat" }, { name: "description", content: "Admin dashboard" }] }),
+  head: () => ({ meta: [{ title: "Admin · MajaniChat" }, { name: "description", content: "Admin dashboard" }] }),
   component: Admin,
 });
 

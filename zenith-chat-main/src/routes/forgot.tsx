@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { AuthShell, Field, PrimaryButton } from "@/components/auth-shell";
 
 export const Route = createFileRoute("/forgot")({
-  head: () => ({ meta: [{ title: "Reset password — NebulaChat" }, { name: "description", content: "Reset your password" }] }),
+  head: () => ({ meta: [{ title: "Reset password — MajaniChat" }, { name: "description", content: "Reset your password" }] }),
   component: Forgot,
 });
 

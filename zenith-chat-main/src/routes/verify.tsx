@@ -3,7 +3,7 @@ import { AuthShell, PrimaryButton } from "@/components/auth-shell";
 import { FormEvent, useRef, useState } from "react";
 
 export const Route = createFileRoute("/verify")({
-  head: () => ({ meta: [{ title: "Verify — NebulaChat" }, { name: "description", content: "Verify your account" }] }),
+  head: () => ({ meta: [{ title: "Verify — MajaniChat" }, { name: "description", content: "Verify your account" }] }),
   component: Verify,
 });
 
