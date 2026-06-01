@@ -57,7 +57,7 @@ function GroupChatRoom() {
     setIsUploading(true);
     try {
       const fd = new FormData(); fd.append("file", file);
-      const { data } = await axios.post("/messages/upload", fd, { headers: { "Content-Type": "multipart/form-data" } });
+      const { data } = await axios.post("/messages/upload", fd);
       
       const payload: any = {
         message: file.name,
@@ -75,7 +75,10 @@ function GroupChatRoom() {
 
       await sendMessage(payload);
       setReplyingTo(null);
-    } catch (e) { console.error(e); } finally { setIsUploading(false); }
+    } catch (e: any) { 
+      console.error(e);
+      alert(e?.response?.data?.error || "Failed to upload file. Please try again.");
+    } finally { setIsUploading(false); }
   }, [sendMessage, replyingTo]);
 
   // ── Voice recorder (fixed) ──────────────────────────────────────────────

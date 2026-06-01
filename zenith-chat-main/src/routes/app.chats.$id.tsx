@@ -282,9 +282,7 @@ function ChatRoom() {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      const uploadRes = await axios.post("/messages/upload", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const uploadRes = await axios.post("/messages/upload", formData);
       const { url, type, publicId, mimeType, size } = uploadRes.data;
       const resolvedType = type || messageType;
       const payload: any = {
@@ -305,8 +303,9 @@ function ChatRoom() {
       setMessages(prev => [...prev, res.data]);
       setReplyingTo(null);
       setSendAsViewOnce(false); // Reset view once toggle after sending
-    } catch (error) {
+    } catch (error: any) {
       console.error("Upload failed", error);
+      alert(error?.response?.data?.error || "Failed to upload file. Please check size limits or try again.");
     } finally {
       setIsUploading(false);
     }
